@@ -2,20 +2,33 @@ package com.carrotc.serverpatcher;
 
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.core.jmx.Server;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public class StateSaverAndLoader extends PersistentState {
 
+    public static final String PLAYER_NAME_MAP_KEY = "playerNameMap";
+    public static HashMap<String, UUID> nameToUUIDMap = new HashMap<>();
+
     public HashMap<UUID, PlayerData> players = new HashMap<>();
 
     @Override
     public NbtCompound writeNbt(NbtCompound nbt) {
+        // writing to server
+        NbtCompound mapTag = new NbtCompound();
+        nameToUUIDMap.forEach((s, u) -> {
+            mapTag.putString(s, u.toString());
+        });
+        nbt.put(PLAYER_NAME_MAP_KEY, mapTag);
+
+        // writing to playerData
         NbtCompound playersNbt = new NbtCompound();
         players.forEach((uuid, playerData) -> {
             NbtCompound playerNbt = new NbtCompound();
@@ -31,7 +44,14 @@ public class StateSaverAndLoader extends PersistentState {
 
     public static StateSaverAndLoader createFromNbt(NbtCompound tag) {
         StateSaverAndLoader state = new StateSaverAndLoader();
+        // reading to server
+        NbtCompound mapTag = tag.getCompound(PLAYER_NAME_MAP_KEY);
+        mapTag.getKeys().forEach(playerName -> {
+            UUID uuid = UUID.fromString(mapTag.getString(playerName));
+            nameToUUIDMap.put(playerName, uuid);
+        });
 
+        // reading to playerData
         NbtCompound playersNbt = tag.getCompound("players");
         playersNbt.getKeys().forEach(key -> {
             PlayerData playerData = new PlayerData();
@@ -43,6 +63,10 @@ public class StateSaverAndLoader extends PersistentState {
         });
 
         return state;
+    }
+
+    public static UUID getOfflineUUID(String name) {
+        return nameToUUIDMap.get(name);
     }
 
     /**
@@ -69,11 +93,17 @@ public class StateSaverAndLoader extends PersistentState {
     }
 
     public static PlayerData getPlayerState(LivingEntity player) {
-        StateSaverAndLoader serverState = getServerState(player.getWorld().getServer());
+        return getPlayerState(player.getUuid(), player.getServer());
+    }
+
+    public static PlayerData getPlayerState(UUID u, MinecraftServer server) {
+        StateSaverAndLoader serverState = getServerState(server);
 
         // Either get the player by the uuid, or we don't have data for him yet, make a new player state
-        PlayerData playerState = serverState.players.computeIfAbsent(player.getUuid(), uuid -> new PlayerData());
+        return serverState.players.computeIfAbsent(u, uuid -> new PlayerData());
+    }
 
-        return playerState;
+    public void savePlayerData(UUID u, PlayerData data) {
+        players.put(u, data);
     }
 }

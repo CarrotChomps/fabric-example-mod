@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public class PlayerData {
     public UUID pair;
+    public String name;
 
     public void setPair(UUID pair) {
         this.pair = pair;
