@@ -1,4 +1,4 @@
-package com.example;
+package com.carrotc.serverpatcher;
 
 import net.fabricmc.api.ClientModInitializer;
 
