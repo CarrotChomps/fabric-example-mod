@@ -1,7 +1,20 @@
 package com.carrotc.serverpatcher;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+
+import java.util.UUID;
 
 public class PlayerData {
-    public ServerPlayerEntity linkedPlayer;
+    public UUID pair;
+
+    public void setPair(UUID pair) {
+        this.pair = pair;
+    }
+
+    public void removePair() {
+        this.pair = null;
+    }
+
+    public UUID getPair() {
+        return pair;
+    }
 }
