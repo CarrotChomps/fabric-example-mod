@@ -48,7 +48,7 @@ public class PlayerPair {
     }
 
     public boolean has(UUID uuid) {
-        return uuid == uuid1 || uuid == uuid2;
+        return uuid.equals(uuid1) || uuid.equals(uuid2);
     }
 
     public boolean has(String name) {
@@ -61,5 +61,13 @@ public class PlayerPair {
 
     public String pairMessage() {
         return String.format("%s is paired with %s.", name1, name2);
+    }
+
+    public UUID getOtherPairUUID(UUID uuid) {
+        if (uuid.equals(uuid1)) {
+            return uuid2;
+        } else {
+            return uuid1;
+        }
     }
 }
