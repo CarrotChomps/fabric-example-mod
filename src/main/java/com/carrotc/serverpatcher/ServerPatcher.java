@@ -11,6 +11,7 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
@@ -25,7 +26,7 @@ public class ServerPatcher implements ModInitializer {
     @Override
     public void onInitialize() {
 
-        // link command
+        // link command (only works on online players)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link").then(argument("player1", StringArgumentType.string()).executes(context -> {
             context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
             return -1;
@@ -44,84 +45,47 @@ public class ServerPatcher implements ModInitializer {
             ServerPlayerEntity player1 = server.getPlayerManager().getPlayer(target1);
             ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(target2);
 
-            // check input
-            UUID uuid1 = player1 != null ? player1.getUuid() : StateSaverAndLoader.getOfflineUUID(target1);
-            UUID uuid2 = player2 != null ? player2.getUuid() : StateSaverAndLoader.getOfflineUUID(target2);
-
-            if (uuid1 == null || uuid2 == null) {
-                context.getSource().sendFeedback(() -> Text.literal("Invalid Targets."), false);
-                return -1;
-            }
-
             try {
-                // save to memory
-                PlayerPairManager.INSTANCE.addPair(uuid1, uuid2);
-                // save to player data
-                PlayerData player1State = StateSaverAndLoader.getPlayerState(uuid1, server);
-                PlayerData player2State = StateSaverAndLoader.getPlayerState(uuid2, server);
-
-                player1State.setPair(uuid1);
-                player2State.setPair(uuid2);
-
-                context.getSource().sendFeedback(() -> Text.literal("Linked players."), false);
-
-                return 1;
+                PlayerPairManager.getInstance(server).addPair(player1, player2);
             } catch (NullPairingException e) {
-                String source = e.getSource();
-                context.getSource().sendFeedback(() -> Text.literal(source + " was null!"), false);
+                context.getSource().sendFeedback(() -> Text.literal("Those players don't exist."), false);
                 return -1;
             } catch (AlreadyPairedException e) {
-                UUID u = e.getAttemptedPair();
-                context.getSource().sendFeedback(() -> Text.literal(u + " is already paired with someone!"), false);
+                context.getSource().sendFeedback(() -> Text.literal("Those players are already paired."), false);
                 return -1;
             }
+
+            context.getSource().sendFeedback(() -> Text.literal("Players linked"), false);
+            return 0;
         })))));
 
-        // unlink command
+        // unlink command (works on offline)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("unlink").then(argument("player", StringArgumentType.string()).executes(context -> {
             MinecraftServer server = context.getSource().getServer();
             String target = StringArgumentType.getString(context, "player");
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(target);
-            UUID uuid = player != null ? player.getUuid() : StateSaverAndLoader.getOfflineUUID(target);
 
-            // check input
-            if (uuid == null) {
-                context.getSource().sendFeedback(() -> Text.literal("Invalid Targets."), false);
+            PlayerPair removedPair = PlayerPairManager.getInstance(server).removePair(target);
+            if (removedPair == null) {
+                context.getSource().sendFeedback(() -> Text.literal("That player doesn't exist"), false);
                 return -1;
             }
 
-            // remove from memory
-            PlayerPair removedPair = PlayerPairManager.INSTANCE.removePair(uuid);
-            // remove from playerData
-            PlayerData player1Data = StateSaverAndLoader.getPlayerState(removedPair.getPlayer1(), server);
-            PlayerData player2Data = StateSaverAndLoader.getPlayerState(removedPair.getPlayer2(), server);
-
-            // remove from playerData
-            player1Data.removePair();
-            player2Data.removePair();
-
-            StateSaverAndLoader.getServerState(server).savePlayerData(removedPair.getPlayer1(), player1Data);
-            StateSaverAndLoader.getServerState(server).savePlayerData(removedPair.getPlayer2(), player2Data);
-
+            context.getSource().sendFeedback(() -> Text.literal("Player unlinked"), false);
             return 1;
         }))));
 
-        // list command
+        // list command (displays offline players as well)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("list").executes(context -> {
+            MinecraftServer server = context.getSource().getServer();
+            List<PlayerPair> pairList = PlayerPairManager.getInstance(server).getPairs();
 
-            if (PlayerPairManager.pairs.isEmpty()) {
-                context.getSource().sendFeedback(() -> Text.literal("No one is paired at the moment"), false);
-                return 1;
+            if (pairList.isEmpty()) {
+                context.getSource().sendFeedback(() -> Text.literal("No one is paired at the moment."), false);
             }
 
-            for (PlayerPair pair : PlayerPairManager.pairs) {
-                PlayerManager pM = context.getSource().getServer().getPlayerManager();
-                if (pair.getPlayer1() != null) {
-                    context.getSource().sendFeedback(() -> Text.literal(pM.getPlayer(pair.getPlayer1()).getName().getString() + " is paired with " + pM.getPlayer(pair.getPlayer2()).getName().getString()), false);
-                } else {
-                    LOGGER.error("Someone is paired with a null!!");
-                }
-            }
+            PlayerPairManager.getInstance(server).getPairs().forEach(pair -> {
+                context.getSource().sendFeedback(() -> Text.literal(pair.pairMessage()), false);
+            });
 
             return 1;
         })));
@@ -129,54 +93,10 @@ public class ServerPatcher implements ModInitializer {
 
         // on join event
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
-            LOGGER.info(handler.getPlayer().getName().getString() + " joined the server.");
-            ServerPlayerEntity playerEntity = handler.getPlayer();
-
-            PlayerData playerData = StateSaverAndLoader.getPlayerState(playerEntity);
-            UUID p1 = playerEntity.getUuid();
-            UUID p2 = playerData.getPair();
-
-            // if the player has no pair, don't do anything
-            if (p2 == null) {
-                LOGGER.info(playerEntity.getName().getString() + " has no pair, no need to worry!.");
-                return;
-            }
-
-            // loading pair
-            try {
-                PlayerPairManager.INSTANCE.addPair(p1, p2);
-            } catch (NullPairingException e) {
-                LOGGER.error("Null Pairing BAD!! D:<");
-                return;
-            } catch (AlreadyPairedException e) {
-                LOGGER.info(playerEntity.getName().getString() + " already has a pair in memory.");
-                return;
-            }
-
-            LOGGER.info("Player joined, this is the new list " + PlayerPairManager.INSTANCE);
         });
 
         // on leave event
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
-            LOGGER.info(handler.getPlayer().getName().getString() + " left the server.");
-            ServerPlayerEntity playerEntity = handler.getPlayer();
-            PlayerData playerData = StateSaverAndLoader.getPlayerState(playerEntity);
-            // if they have a pair in memory, save it to data.
-            PlayerPair pair = PlayerPairManager.INSTANCE.getPair(playerEntity.getUuid());
-
-            assert pair != null;
-            UUID p1 = pair.getPlayer1();
-            UUID p2 = pair.getPlayer2();
-
-            if (p1 == playerEntity.getUuid()) {
-                playerData.setPair(p2);
-                StateSaverAndLoader.getServerState(server).savePlayerData(p1, playerData);
-            } else {
-                playerData.setPair(p1);
-                StateSaverAndLoader.getServerState(server).savePlayerData(p2, playerData);
-            }
-
-            LOGGER.info("Player left, this is the new list " + PlayerPairManager.INSTANCE);
         });
     }
 }
