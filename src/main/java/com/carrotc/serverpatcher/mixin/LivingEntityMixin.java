@@ -26,6 +26,8 @@ public abstract class LivingEntityMixin {
     @Shadow
     public abstract void heal(float amount);
 
+    @Shadow protected abstract float modifyAppliedDamage(DamageSource source, float amount);
+
     @Inject(method = "heal", at = @At("HEAD"))
     public void heal0(float amount, CallbackInfo ci) {
         if ((Object) this instanceof ServerPlayerEntity player1) {
@@ -52,7 +54,7 @@ public abstract class LivingEntityMixin {
     @Inject(method = "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("TAIL"), cancellable = true)
     public void damage0(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if ((Object) this instanceof ServerPlayerEntity playerBeingHurt) {
-            // ServerPatcher.LOGGER.info("Calling Damage Method from Mixin for " + playerBeingHurt.getName().getString());
+            ServerPatcher.LOGGER.info("Calling Damage Method from Mixin for " + playerBeingHurt.getName().getString());
             MinecraftServer server = playerBeingHurt.getServer();
             if (server != null) {
                 PlayerPair hurtPair = PlayerPairManager.getInstance(server).getPair(playerBeingHurt.getUuid());
@@ -84,13 +86,13 @@ public abstract class LivingEntityMixin {
                                         playerBeingHurt.setHealth(1);
                                         player2.setHealth(1);
                                         hurtPair.setBeenDamaged(false);
-                                        // ServerPatcher.LOGGER.info("[!!] PairedPlayer has a totem of undying " + playerBeingHurt.getName().getString());
+                                        ServerPatcher.LOGGER.info("[!!] PairedPlayer has a totem of undying " + playerBeingHurt.getName().getString());
                                         return;
                                     }
                                 }
                             }
-                            float actualAmount = hurtPair.getRecentDamage();
-                            // ServerPatcher.LOGGER.info("[!] dealing " + actualAmount + " to " + player2.getName().getString());
+                            float actualAmount = hurtPair.getRecentDamage() > 0 ? hurtPair.getRecentDamage() : amount;
+                            ServerPatcher.LOGGER.info("[!] dealing " + actualAmount + " to " + player2.getName().getString());
                             player2.damage(player2.getDamageSources().generic(), actualAmount);
                             if (playerBeingHurt.getHealth() != player2.getHealth()) {
                                 float healthCheck = Math.max(playerBeingHurt.getHealth(), player2.getHealth());

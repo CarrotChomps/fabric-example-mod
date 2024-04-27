@@ -25,7 +25,7 @@ public abstract class ServerPlayerEntityMixin {
     @Inject(method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", at = @At("HEAD"), cancellable = true)
     public void onDeath0(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity playerDying = (ServerPlayerEntity) (Object) this;
-        // ServerPatcher.LOGGER.info("Calling Death Method from Mixin for " + playerDying.getName().getString());
+        ServerPatcher.LOGGER.info("Calling Death Method from Mixin for " + playerDying.getName().getString());
         MinecraftServer server = playerDying.getServer();
         if (server != null) {
             PlayerPair deadPair = PlayerPairManager.getInstance(server).getPair(playerDying.getUuid());
@@ -47,21 +47,21 @@ public abstract class ServerPlayerEntityMixin {
 //                        }
 //                    }
 
-                    // playerDying is the one without the totem.
-                    // player2 is the one killing playerDying with the totem.
-                    // playerDying shouldn't die, but instead get their health set to 1.
-                    // player2 shouldn't die, but take enough damage to proc the totem of undying.
+                    // CarrotC takes the damage (DMG-MXN)
+                    //      NotCarrotC takes the damage (DMG-MXN)
+                    //      NotCarrotC dies, because he takes the damage [he dies???]
+                    // CarrotC dies ()
 
                     for (ItemStack hand : player2.getHandItems()) {
                         if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
                             playerDying.setHealth(1);
                             player2.damage(player2.getDamageSources().generic(), (player2.getHealth() + player2.getAbsorptionAmount()) + 1);
-                            // ServerPatcher.LOGGER.info("[!!] Pair used a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
+                            ServerPatcher.LOGGER.info("[!!] Pair has a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
                             ci.cancel();
                             return;
                         }
                     }
-                    // ServerPatcher.LOGGER.info("[!] killing " + player2.getName().getString());
+                    ServerPatcher.LOGGER.info("[!] killing " + player2.getName().getString());
                     player2.kill();
                 }
             } else {
