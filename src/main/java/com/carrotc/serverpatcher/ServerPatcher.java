@@ -91,9 +91,16 @@ public class ServerPatcher implements ModInitializer {
         })));
 
 
-
         // on join event
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
+            ServerPlayerEntity playerThatJustJoined = handler.getPlayer();
+            if (PlayerPairManager.getInstance(server).isInAPair(playerThatJustJoined)) {
+                PlayerPair joinedPair = PlayerPairManager.getInstance(server).getPair(playerThatJustJoined.getUuid());
+                ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(joinedPair.getOtherPairUUID(playerThatJustJoined.getUuid()));
+                if (player2 != null) {
+                    playerThatJustJoined.setHealth(player2.getHealth()); // sync healths on join
+                }
+            }
         });
 
         // on leave event
