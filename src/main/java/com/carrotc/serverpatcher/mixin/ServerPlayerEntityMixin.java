@@ -25,7 +25,7 @@ public abstract class ServerPlayerEntityMixin {
     @Inject(method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", at = @At("HEAD"), cancellable = true)
     public void onDeath0(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity playerDying = (ServerPlayerEntity) (Object) this;
-        ServerPatcher.LOGGER.info("Calling Death Method from Mixin for " + playerDying.getName().getString());
+        // ServerPatcher.LOGGER.info("Calling Death Method from Mixin for " + playerDying.getName().getString());
         MinecraftServer server = playerDying.getServer();
         if (server != null) {
             PlayerPair deadPair = PlayerPairManager.getInstance(server).getPair(playerDying.getUuid());
@@ -56,12 +56,12 @@ public abstract class ServerPlayerEntityMixin {
                         if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
                             playerDying.setHealth(1);
                             player2.damage(player2.getDamageSources().generic(), (player2.getHealth() + player2.getAbsorptionAmount()) + 1);
-                            ServerPatcher.LOGGER.info("[!!] Pair used a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
+                            // ServerPatcher.LOGGER.info("[!!] Pair used a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
                             ci.cancel();
                             return;
                         }
                     }
-                    ServerPatcher.LOGGER.info("[!] killing " + player2.getName().getString());
+                    // ServerPatcher.LOGGER.info("[!] killing " + player2.getName().getString());
                     player2.kill();
                 }
             } else {

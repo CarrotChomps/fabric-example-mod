@@ -3,16 +3,15 @@ package com.carrotc.serverpatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.UUID;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
@@ -23,9 +22,9 @@ public class ServerPatcher implements ModInitializer {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
+    //TODO: Absorption check, then test cases :D;
     @Override
     public void onInitialize() {
-
         // link command (only works on online players)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link").then(argument("player1", StringArgumentType.string()).executes(context -> {
             context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
@@ -106,5 +105,18 @@ public class ServerPatcher implements ModInitializer {
         // on leave event
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
         });
+
+        ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, playerThatJustRespawned, alive) -> {
+            MinecraftServer server = playerThatJustRespawned.getServer();
+            if(server != null) {
+                if (PlayerPairManager.getInstance(server).isInAPair(playerThatJustRespawned)) {
+                    PlayerPair joinedPair = PlayerPairManager.getInstance(server).getPair(playerThatJustRespawned.getUuid());
+                    ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(joinedPair.getOtherPairUUID(playerThatJustRespawned.getUuid()));
+                    if (player2 != null && player2.isAlive()) {
+                        playerThatJustRespawned.setHealth(player2.getHealth()); // sync healths on respawn
+                    }
+                }
+            }
+        }));
     }
 }
