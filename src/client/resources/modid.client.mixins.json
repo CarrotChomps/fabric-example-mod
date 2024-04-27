@@ -1,9 +1,9 @@
 {
 	"required": true,
-	"package": "com.carrotc.mixin.client",
+	"package": "com.carrotc.serverpatcher.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"com.carrotc.serverpatcher.mixin.client.ExampleClientMixin"
+		"ExampleClientMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

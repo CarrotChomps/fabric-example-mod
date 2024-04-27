@@ -3,7 +3,8 @@
 	"package": "com.carrotc.serverpatcher.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ExampleMixin"
+		"ExampleMixin",
+		"MixinPlayerEntity"
 	],
 	"injectors": {
 		"defaultRequire": 1

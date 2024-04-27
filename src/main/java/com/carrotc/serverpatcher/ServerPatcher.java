@@ -91,6 +91,7 @@ public class ServerPatcher implements ModInitializer {
         })));
 
 
+
         // on join event
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
         });
