@@ -22,6 +22,9 @@ public class PlayerPair {
     @Getter
     @Setter
     private boolean beenHealed = false;
+    @Getter
+    @Setter
+    private boolean usedTotem = false;
 
     public PlayerPair(ServerPlayerEntity player1, ServerPlayerEntity player2) {
         this.uuid1 = player1.getUuid();

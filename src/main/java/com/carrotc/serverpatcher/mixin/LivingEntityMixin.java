@@ -4,6 +4,7 @@ import com.carrotc.serverpatcher.PlayerPair;
 import com.carrotc.serverpatcher.PlayerPairManager;
 import com.carrotc.serverpatcher.ServerPatcher;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-
 
     @Inject(method = "heal", at = @At("HEAD"))
     public void heal0(float amount, CallbackInfo ci) {
@@ -37,14 +37,4 @@ public abstract class LivingEntityMixin {
             }
         }
     }
-
-//    @Inject(method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", at = @At("HEAD"))
-//    public void deathMessage(DamageSource damageSource, CallbackInfo ci) {
-//        ServerPatcher.LOGGER.info("This got called yipee!!!!");
-//        if ((Object) this instanceof PlayerEntity player) {
-//            ServerPatcher.LOGGER.info(player.getName().getString() + " DIED LOL");
-//        } else {
-//            ServerPatcher.LOGGER.info("Something DIED LOL");
-//        }
-//    }
 }
