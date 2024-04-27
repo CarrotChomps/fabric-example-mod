@@ -55,7 +55,7 @@ public abstract class ServerPlayerEntityMixin {
                     for (ItemStack hand : player2.getHandItems()) {
                         if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
                             playerDying.setHealth(1);
-                            player2.damage(player2.getDamageSources().magic(), player2.getHealth() + 1);
+                            player2.damage(player2.getDamageSources().generic(), (player2.getHealth() + player2.getAbsorptionAmount()) + 1);
                             ServerPatcher.LOGGER.info("[!!] Pair used a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
                             ci.cancel();
                             return;
@@ -66,65 +66,6 @@ public abstract class ServerPlayerEntityMixin {
                 }
             } else {
                 ServerPatcher.LOGGER.error("Null deadPair!");
-            }
-        }
-    }
-
-    /**
-     * totems of undying don't work
-     *
-     * @param source
-     * @param amount
-     * @param cir
-     */
-    @Inject(method = "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("HEAD"), cancellable = true)
-    public void damage0(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        ServerPlayerEntity playerBeingHurt = (ServerPlayerEntity) (Object) this;
-        ServerPatcher.LOGGER.info("Calling Damage Method from Mixin for " + playerBeingHurt.getName().getString());
-        MinecraftServer server = playerBeingHurt.getServer();
-        if (server != null) {
-            PlayerPair hurtPair = PlayerPairManager.getInstance(server).getPair(playerBeingHurt.getUuid());
-            if (hurtPair != null) {
-//                if (hurtPair.isUsedTotem()) {
-//                    hurtPair.setUsedTotem(false);
-//                    cir.setReturnValue(false);
-//                    ServerPatcher.LOGGER.info("[!!] Pair used a totem of Undying, canceling for hurting Player: " + playerBeingHurt.getName().getString());
-//                    return;
-//                }
-                if (!hurtPair.isBeenDamaged()) {
-                    ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(hurtPair.getOtherPairUUID(playerBeingHurt.getUuid()));
-                    if (player2 != null) {
-                        // ServerPatcher.LOGGER.info(playerDying.getName().getString() + " died so... so killing " + player2.getName().getString() + " as well!");
-                        hurtPair.setBeenDamaged(true);
-
-                        // stupid totem of undying edge case
-                        if (amount >= player2.getHealth()) {
-//                            for (ItemStack hand : playerBeingHurt.getHandItems()) {
-//                                if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
-//                                    player2.setHealth(1);
-//                                    hurtPair.setBeenDamaged(false);
-//                                    ServerPatcher.LOGGER.info("[!!] PlayerBeingHurt has a totem of undying " + playerBeingHurt.getName().getString());
-//                                    return;
-//                                }
-//                            }
-                            for (ItemStack hand : player2.getHandItems()) {
-                                if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
-                                    playerBeingHurt.setHealth(1);
-                                    player2.setHealth(1);
-                                    hurtPair.setBeenDamaged(false);
-                                    ServerPatcher.LOGGER.info("[!!] PairedPlayer has a totem of undying " + playerBeingHurt.getName().getString());
-                                    return;
-                                }
-                            }
-                        }
-
-                        ServerPatcher.LOGGER.info("[!] dealing " + amount + " to " + player2.getName().getString());
-                        player2.damage(player2.getDamageSources().magic(), amount);
-                        hurtPair.setBeenDamaged(false);
-                    }
-                }
-            } else {
-                ServerPatcher.LOGGER.error("Null hurtPair!");
             }
         }
     }
