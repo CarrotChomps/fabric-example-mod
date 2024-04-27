@@ -1,5 +1,7 @@
 package com.carrotc.serverpatcher;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.UUID;
@@ -13,6 +15,13 @@ public class PlayerPair {
 
     private final UUID uuid2;
     private final String name2;
+
+    @Setter
+    @Getter
+    private boolean beenDamaged = false;
+    @Getter
+    @Setter
+    private boolean beenHealed = false;
 
     public PlayerPair(ServerPlayerEntity player1, ServerPlayerEntity player2) {
         this.uuid1 = player1.getUuid();

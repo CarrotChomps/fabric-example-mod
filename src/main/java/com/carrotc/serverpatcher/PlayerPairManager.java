@@ -80,11 +80,11 @@ public class PlayerPairManager extends PersistentState {
     }
 
     public PlayerPair getPair(UUID p1) {
-        ServerPatcher.LOGGER.info("Looking for a pair that has \"" + p1 + "\"");
+        // ServerPatcher.LOGGER.info("Looking for a pair that has \"" + p1 + "\"");
         for (PlayerPair pair : pairs) {
-            ServerPatcher.LOGGER.info("\"" + p1 + "\" vs. \"" + pair.getUUID1() + "\"");
-            ServerPatcher.LOGGER.info("\"" + p1 + "\" vs. \"" + pair.getUUID2() + "\"");
-            ServerPatcher.LOGGER.info("==============================================");
+            // ServerPatcher.LOGGER.info("\"" + p1 + "\" vs. \"" + pair.getUUID1() + "\"");
+            // ServerPatcher.LOGGER.info("\"" + p1 + "\" vs. \"" + pair.getUUID2() + "\"");
+            // ServerPatcher.LOGGER.info("==============================================");
             if (pair.has(p1)) {
                 return pair;
             }
