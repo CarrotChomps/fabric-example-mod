@@ -26,12 +26,12 @@ public class ServerPatcher implements ModInitializer {
 
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    //TODO: Absorption check, then test cases :D;
     @Override
     public void onInitialize() {
         // link command (only works on online players)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link").then(argument("player1", StringArgumentType.string()).executes(context -> {
-            context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
+            // context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
+            context.getSource().sendMessage(Text.literal("Please use two targets."));
             return -1;
         }).then(argument("player2", StringArgumentType.string()).executes(context -> {
             MinecraftServer server = context.getSource().getServer();
@@ -41,7 +41,8 @@ public class ServerPatcher implements ModInitializer {
 
             // check if unique input
             if (target1.equalsIgnoreCase(target2)) {
-                context.getSource().sendFeedback(() -> Text.literal("Can't be the same Targets."), false);
+                // context.getSource().sendFeedback(() -> Text.literal("Can't be the same Targets."), false);
+                context.getSource().sendMessage(Text.literal("Can't be the same Targets."));
                 return -1;
             }
 
@@ -51,14 +52,17 @@ public class ServerPatcher implements ModInitializer {
             try {
                 PlayerPairManager.getInstance(server).addPair(player1, player2);
             } catch (NullPairingException e) {
-                context.getSource().sendFeedback(() -> Text.literal("Those players don't exist."), false);
+                // context.getSource().sendFeedback(() -> Text.literal("Those players don't exist."), false);
+                context.getSource().sendMessage(Text.literal("That player doesn't exist"));
                 return -1;
             } catch (AlreadyPairedException e) {
-                context.getSource().sendFeedback(() -> Text.literal("Those players are already paired."), false);
+                // context.getSource().sendFeedback(() -> Text.literal("Those players are already paired."), false);
+                context.getSource().sendMessage(Text.literal("Those players are already paired."));
                 return -1;
             }
 
-            context.getSource().sendFeedback(() -> Text.literal("Players linked"), false);
+            // context.getSource().sendFeedback(() -> Text.literal("Players linked"), false);
+            context.getSource().sendMessage(Text.literal("Players linked"));
             return 0;
         })))));
 
@@ -71,11 +75,13 @@ public class ServerPatcher implements ModInitializer {
 
                             PlayerPair removedPair = PlayerPairManager.getInstance(server).removePair(target);
                             if (removedPair == null) {
-                                context.getSource().sendFeedback(() -> Text.literal("That player doesn't exist"), false);
+                                // context.getSource().sendFeedback(() -> Text.literal("That player doesn't exist"), false);
+                                context.getSource().sendMessage(Text.literal("That player doesn't exist"));
                                 return -1;
                             }
 
-                            context.getSource().sendFeedback(() -> Text.literal("Player unlinked"), false);
+                            // context.getSource().sendFeedback(() -> Text.literal("Player unlinked"), false);
+                            context.getSource().sendMessage(Text.literal("Player unlinked"));
                             return 1;
                         }))));
 
@@ -85,11 +91,12 @@ public class ServerPatcher implements ModInitializer {
             List<PlayerPair> pairList = PlayerPairManager.getInstance(server).getPairs();
 
             if (pairList.isEmpty()) {
-                context.getSource().sendFeedback(() -> Text.literal("No one is paired at the moment."), false);
+                // context.getSource().sendFeedback(() -> Text.literal("No one is paired at the moment."), false);
+                context.getSource().sendMessage(Text.literal("No one is paired at the moment."));
             }
 
             PlayerPairManager.getInstance(server).getPairs().forEach(pair -> {
-                context.getSource().sendFeedback(() -> Text.literal(pair.pairMessage()), false);
+                context.getSource().sendMessage(Text.literal(pair.pairMessage()));
             });
 
             return 1;
@@ -152,14 +159,16 @@ public class ServerPatcher implements ModInitializer {
             if (user != null) {
                 targetPlayers.remove(user);
             } else {
-                context.getSource().sendFeedback(() -> Text.literal("User wasn't a player, uhoh!"), false);
+                // context.getSource().sendFeedback(() -> Text.literal("User wasn't a player, uhoh!"), false);
+                context.getSource().sendMessage(Text.literal("User wasn't a player, uhoh!"));
                 return -1;
             }
         }
 
         // can't pair if there is only 1 player in the list
         if (targetPlayers.size() == 1) {
-            context.getSource().sendFeedback(() -> Text.literal("Not enough players to make random pairs..."), false);
+            // context.getSource().sendFeedback(() -> Text.literal("Not enough players to make random pairs..."), false);
+            context.getSource().sendMessage(Text.literal("Not enough players to make random pairs..."));
             return -1;
         }
 
@@ -185,7 +194,8 @@ public class ServerPatcher implements ModInitializer {
             }
         }
 
-        context.getSource().sendFeedback(() -> Text.literal("Players randomized"), false);
+        // context.getSource().sendFeedback(() -> Text.literal("Players randomized"), false);
+        context.getSource().sendMessage(Text.literal("Players randomized"));
         return 1;
     }
 }
