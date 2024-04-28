@@ -148,7 +148,7 @@ public class ServerPatcher implements ModInitializer {
 
         // check if even players. if not, remove user from target list to make sure everyone has fun
         if (targetPlayers.size() % 2 != 0) {
-            ServerPatcher.LOGGER.info("Uneven players, removing user form list");
+            // ServerPatcher.LOGGER.info("Uneven players, removing user form list");
             if (user != null) {
                 targetPlayers.remove(user);
             } else {

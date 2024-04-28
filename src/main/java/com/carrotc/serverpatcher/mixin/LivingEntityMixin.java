@@ -57,7 +57,7 @@ public abstract class LivingEntityMixin {
     @Inject(method = "damage(Lnet/minecraft/entity/damage/DamageSource;F)Z", at = @At("TAIL"), cancellable = true)
     public void damage0(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if ((Object) this instanceof ServerPlayerEntity playerBeingHurt) {
-            ServerPatcher.LOGGER.info("[!D!] Calling Damage Method from Mixin for " + playerBeingHurt.getName().getString());
+            // ServerPatcher.LOGGER.info("[!D!] Calling Damage Method from Mixin for " + playerBeingHurt.getName().getString());
             MinecraftServer server = playerBeingHurt.getServer();
             if (server != null) {
                 PlayerPair hurtPair = PlayerPairManager.getInstance(server).getPair(playerBeingHurt.getUuid());
@@ -80,7 +80,7 @@ public abstract class LivingEntityMixin {
                                     player2.setHealth(1);
                                     hurtPair.setBeenDamaged(false);
                                     hurtPair.setUsedTotem(false);
-                                    ServerPatcher.LOGGER.info("[!!] Pair used a totem of undying " + playerBeingHurt.getName().getString() + ", not dealing damage, and setting " + player2.getName().getString() + "'s HP to 1.");
+                                    // ServerPatcher.LOGGER.info("[!!] Pair used a totem of undying " + playerBeingHurt.getName().getString() + ", not dealing damage, and setting " + player2.getName().getString() + "'s HP to 1.");
                                     return;
                                 }
                                 for (ItemStack hand : player2.getHandItems()) {
@@ -88,7 +88,7 @@ public abstract class LivingEntityMixin {
                                         playerBeingHurt.setHealth(1);
                                         player2.setHealth(1);
                                         hurtPair.setBeenDamaged(false);
-                                        ServerPatcher.LOGGER.info("[!!] " + player2.getName().getString() + " has a totem of undying, so we won't deal damage to" + playerBeingHurt.getName().getString());
+                                        // ServerPatcher.LOGGER.info("[!!] " + player2.getName().getString() + " has a totem of undying, so we won't deal damage to" + playerBeingHurt.getName().getString());
                                         return;
                                     }
                                 }
@@ -96,7 +96,7 @@ public abstract class LivingEntityMixin {
 
                             // deal damage to the pair based on the amount of damage the other half just took (note, this may kill them)
                             float actualAmount = hurtPair.getRecentDamage() > 0 ? hurtPair.getRecentDamage() : amount;
-                            ServerPatcher.LOGGER.info("[!] " + playerBeingHurt.getName().getString() + " took damage, so dealing " + actualAmount + " to " + player2.getName().getString());
+                            // ServerPatcher.LOGGER.info("[!] " + playerBeingHurt.getName().getString() + " took damage, so dealing " + actualAmount + " to " + player2.getName().getString());
                             player2.damage(player2.getDamageSources().generic(), actualAmount);
 
                             // emergency health sync
@@ -137,7 +137,7 @@ public abstract class LivingEntityMixin {
                 for (Hand hand : Hand.values()) {
                     ItemStack itemStack2 = playerBeingHurt.getStackInHand(hand);
                     if (itemStack2.isOf(Items.TOTEM_OF_UNDYING)) {
-                        ServerPatcher.LOGGER.info("[!] Someone used a Totem :>!");
+                        // ServerPatcher.LOGGER.info("[!] Someone used a Totem :>!");
                         pair.setUsedTotem(true);
                     }
                 }

@@ -25,7 +25,7 @@ public abstract class ServerPlayerEntityMixin {
     @Inject(method = "onDeath(Lnet/minecraft/entity/damage/DamageSource;)V", at = @At("HEAD"), cancellable = true)
     public void onDeath0(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity playerDying = (ServerPlayerEntity) (Object) this;
-        ServerPatcher.LOGGER.info("[!X!] Calling Death Method from Mixin for " + playerDying.getName().getString());
+        // ServerPatcher.LOGGER.info("[!X!] Calling Death Method from Mixin for " + playerDying.getName().getString());
         MinecraftServer server = playerDying.getServer();
         if (server != null) {
             PlayerPair deadPair = PlayerPairManager.getInstance(server).getPair(playerDying.getUuid());
@@ -35,42 +35,24 @@ public abstract class ServerPlayerEntityMixin {
                     if (player2 != null) {
                         deadPair.setBeenKilled(true);
                         // ServerPatcher.LOGGER.info(playerDying.getName().getString() + " died so... so killing " + player2.getName().getString() + " as well!");
-
-                        // if either players hold a totem of undying, dont kill them but deal damage to proc the totem;
-//                    for (ItemStack hand : playerDying.getHandItems()) {
-//                        if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
-//                            playerDying.setHealth(1);
-//                            player2.setHealth(1);
-//
-//                            playerDying.damage(playerDying.getDamageSources().generic(), 10);
-//                            player2.damage(player2.getDamageSources().generic(), 10);
-//                            return;
-//                        }
-//                    }
-
-                        // CarrotC takes the damage (DMG-MXN)
-                        //      NotCarrotC takes the damage (DMG-MXN)
-                        //      NotCarrotC dies, because he takes the damage [he dies???]
-                        // CarrotC dies ()
-
                         for (ItemStack hand : player2.getHandItems()) {
-                            ServerPatcher.LOGGER.info("[?] " + playerDying.getName().getString() + " is checking if a " + hand.getName().getString() + "[" + player2.getName().getString() + "] is a totem..." );
+                            // ServerPatcher.LOGGER.info("[?] " + playerDying.getName().getString() + " is checking if a " + hand.getName().getString() + "[" + player2.getName().getString() + "] is a totem..." );
                             if (hand.isOf(Items.TOTEM_OF_UNDYING)) {
                                 playerDying.setHealth(1);
                                 player2.damage(player2.getDamageSources().generic(), (player2.getHealth() + player2.getAbsorptionAmount()) + 1);
-                                ServerPatcher.LOGGER.info("[!!] " + player2.getName().getString() + " has a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
+                                // ServerPatcher.LOGGER.info("[!!] " + player2.getName().getString() + " has a totem of Undying, canceling for dying Player: " + playerDying.getName().getString());
                                 deadPair.setBeenKilled(false);
                                 ci.cancel();
                                 return;
                             }
                         }
                         // this player died, so we are going to kill their pair
-                        ServerPatcher.LOGGER.info("[!] " + playerDying.getName().getString() + " died, so killing " + player2.getName().getString());
+                        // ServerPatcher.LOGGER.info("[!] " + playerDying.getName().getString() + " died, so killing " + player2.getName().getString());
                         player2.kill();
                         deadPair.setBeenKilled(false);
                     }
                 } else {
-                    ServerPatcher.LOGGER.info("[!!] " + playerDying.getName().getString() + " has already died, no need to kill anyone else.");
+                    // ServerPatcher.LOGGER.info("[!!] " + playerDying.getName().getString() + " has already died, no need to kill anyone else.");
                     deadPair.setBeenKilled(false);
                     ci.cancel();
                 }
