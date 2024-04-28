@@ -128,4 +128,8 @@ public class PlayerPairManager extends PersistentState {
         output.append("]");
         return output.toString();
     }
+
+    public void clearPairs() {
+        pairs.clear();
+    }
 }

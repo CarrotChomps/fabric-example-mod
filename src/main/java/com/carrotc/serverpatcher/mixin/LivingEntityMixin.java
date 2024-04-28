@@ -48,7 +48,7 @@ public abstract class LivingEntityMixin {
                         }
                     }
                 } else {
-                    ServerPatcher.LOGGER.error("Null healPair!");
+                    // ServerPatcher.LOGGER.error("Null healPair!");
                 }
             }
         }
@@ -112,7 +112,7 @@ public abstract class LivingEntityMixin {
                         }
                     }
                 } else {
-                    ServerPatcher.LOGGER.error("Null hurtPair!");
+                    // ServerPatcher.LOGGER.error("Null hurtPair!");
                 }
             }
         }

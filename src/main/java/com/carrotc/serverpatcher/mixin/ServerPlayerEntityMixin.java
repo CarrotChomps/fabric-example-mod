@@ -75,7 +75,7 @@ public abstract class ServerPlayerEntityMixin {
                     ci.cancel();
                 }
             } else {
-                ServerPatcher.LOGGER.error("Null deadPair!");
+                // ServerPatcher.LOGGER.error("Null deadPair!");
             }
         }
     }
