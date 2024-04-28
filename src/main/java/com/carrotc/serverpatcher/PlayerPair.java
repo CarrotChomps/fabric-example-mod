@@ -19,9 +19,15 @@ public class PlayerPair {
     @Setter
     @Getter
     private boolean beenDamaged = false;
+    @Setter
+    @Getter
+    private boolean beenKilled = false;
     @Getter
     @Setter
     private boolean beenHealed = false;
+    @Getter
+    @Setter
+    private boolean usedTotem = false;
 
     @Getter
     @Setter
