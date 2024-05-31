@@ -1,5 +1,9 @@
 package com.carrotc.serverpatcher;
 
+import net.minecraft.entity.attribute.EntityAttribute;
+import net.minecraft.entity.attribute.EntityAttributeModifier;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,7 +25,6 @@ public class PlayerPairManager extends PersistentState {
 
     private PlayerPairManager() {
     }
-
 
     public static PlayerPairManager getInstance(MinecraftServer server) {
         PersistentStateManager persistentStateManager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
@@ -92,8 +95,46 @@ public class PlayerPairManager extends PersistentState {
         return null;
     }
 
+    public PlayerPair getPair(String name) {
+        for (PlayerPair pair : pairs) {
+            if (pair.has(name)) {
+                return pair;
+            }
+        }
+        return null;
+    }
+
     public List<PlayerPair> getPairs() {
         return pairs;
+    }
+
+    public void setPairMaxHealth(MinecraftServer server, PlayerPair pair, float amount) {
+        if (pair == null) {
+            return;
+        }
+        pair.setMaxHealth(amount);
+        ServerPlayerEntity p1 = server.getPlayerManager().getPlayer(pair.getUUID1());
+        ServerPlayerEntity p2 = server.getPlayerManager().getPlayer(pair.getUUID2());
+
+        if (p1 != null) updateMaxHealthAttribute(p1, amount);
+        if (p2 != null) updateMaxHealthAttribute(p2, amount);
+    }
+
+    public void updateMaxHealthAttribute(ServerPlayerEntity p, float amount) {
+        if (p != null) {
+            // clear the health to set the player back to 20.0 health
+            // TODO: you can probably clear the modifiers based on a key to avoid collisions in case there is other sources that change max health...
+            p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).clearModifiers();
+
+            float healthOperation = amount - p.getMaxHealth();
+
+            // then update the health to the new max
+            p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
+                    .addPersistentModifier(
+                            new EntityAttributeModifier("ServerPatcher", healthOperation, EntityAttributeModifier.Operation.ADDITION
+                            )
+                    );
+        }
     }
 
     @Override
@@ -116,7 +157,6 @@ public class PlayerPairManager extends PersistentState {
 
         return playerPairManager;
     }
-
 
     @Override
     public String toString() {

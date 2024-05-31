@@ -9,7 +9,7 @@ public class NullPairingException extends Throwable {
         this.source = source;
     }
 
-    public String  getSource() {
+    public String getSource() {
         return source;
     }
 }

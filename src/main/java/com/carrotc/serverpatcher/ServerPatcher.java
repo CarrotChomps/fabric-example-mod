@@ -1,5 +1,6 @@
 package com.carrotc.serverpatcher;
 
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ModInitializer;
@@ -29,42 +30,43 @@ public class ServerPatcher implements ModInitializer {
     @Override
     public void onInitialize() {
         // link command (only works on online players)
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link").then(argument("player1", StringArgumentType.string()).executes(context -> {
-            // context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
-            context.getSource().sendMessage(Text.literal("Please use two targets."));
-            return -1;
-        }).then(argument("player2", StringArgumentType.string()).executes(context -> {
-            MinecraftServer server = context.getSource().getServer();
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link")
+                .then(argument("player1", StringArgumentType.string()).executes(context -> {
+                    // context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
+                    context.getSource().sendMessage(Text.literal("Please use two targets."));
+                    return -1;
+                }).then(argument("player2", StringArgumentType.string()).executes(context -> {
+                    MinecraftServer server = context.getSource().getServer();
 
-            String target1 = StringArgumentType.getString(context, "player1");
-            String target2 = StringArgumentType.getString(context, "player2");
+                    String target1 = StringArgumentType.getString(context, "player1");
+                    String target2 = StringArgumentType.getString(context, "player2");
 
-            // check if unique input
-            if (target1.equalsIgnoreCase(target2)) {
-                // context.getSource().sendFeedback(() -> Text.literal("Can't be the same Targets."), false);
-                context.getSource().sendMessage(Text.literal("Can't be the same Targets."));
-                return -1;
-            }
+                    // check if unique input
+                    if (target1.equalsIgnoreCase(target2)) {
+                        // context.getSource().sendFeedback(() -> Text.literal("Can't be the same Targets."), false);
+                        context.getSource().sendMessage(Text.literal("Can't be the same Targets."));
+                        return -1;
+                    }
 
-            ServerPlayerEntity player1 = server.getPlayerManager().getPlayer(target1);
-            ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(target2);
+                    ServerPlayerEntity player1 = server.getPlayerManager().getPlayer(target1);
+                    ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(target2);
 
-            try {
-                PlayerPairManager.getInstance(server).addPair(player1, player2);
-            } catch (NullPairingException e) {
-                // context.getSource().sendFeedback(() -> Text.literal("Those players don't exist."), false);
-                context.getSource().sendMessage(Text.literal("That player doesn't exist"));
-                return -1;
-            } catch (AlreadyPairedException e) {
-                // context.getSource().sendFeedback(() -> Text.literal("Those players are already paired."), false);
-                context.getSource().sendMessage(Text.literal("Those players are already paired."));
-                return -1;
-            }
+                    try {
+                        PlayerPairManager.getInstance(server).addPair(player1, player2);
+                    } catch (NullPairingException e) {
+                        // context.getSource().sendFeedback(() -> Text.literal("Those players don't exist."), false);
+                        context.getSource().sendMessage(Text.literal("That player doesn't exist"));
+                        return -1;
+                    } catch (AlreadyPairedException e) {
+                        // context.getSource().sendFeedback(() -> Text.literal("Those players are already paired."), false);
+                        context.getSource().sendMessage(Text.literal("Those players are already paired."));
+                        return -1;
+                    }
 
-            // context.getSource().sendFeedback(() -> Text.literal("Players linked"), false);
-            context.getSource().sendMessage(Text.literal("Players linked"));
-            return 0;
-        })))));
+                    // context.getSource().sendFeedback(() -> Text.literal("Players linked"), false);
+                    context.getSource().sendMessage(Text.literal("Players linked"));
+                    return 0;
+                })))));
 
         // unlink command (works on offline)
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("unlink")
@@ -102,14 +104,54 @@ public class ServerPatcher implements ModInitializer {
             return 1;
         })));
 
+
+        /**
+         *         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("link")
+         *                 .then(argument("player1", StringArgumentType.string()).executes(context -> {
+         *                     // context.getSource().sendFeedback(() -> Text.literal("Please use two targets."), false);
+         *                     context.getSource().sendMessage(Text.literal("Please use two targets."));
+         *                     return -1;
+         *                 }).then(argument("player2", StringArgumentType.string()).executes(context -> {
+         */
+
+        // set max health command (sets the max health of the pair)
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("setMaxHealth")
+                .then(argument("player", StringArgumentType.string()).executes(context -> {
+                    context.getSource().sendMessage(Text.literal("Please insert a value."));
+                    return -1;
+                }).then(argument("health", FloatArgumentType.floatArg(1)).executes(context -> {
+                    MinecraftServer server = context.getSource().getServer();
+                    String target = StringArgumentType.getString(context, "player");
+                    float health = FloatArgumentType.getFloat(context, "health");
+
+                    PlayerPair targetPair = PlayerPairManager.getInstance(server).getPair(target);
+                    if (targetPair == null) {
+                        // context.getSource().sendFeedback(() -> Text.literal("That player doesn't exist"), false);
+                        context.getSource().sendMessage(Text.literal("That player doesn't exist"));
+                        return -1;
+                    }
+
+                    PlayerPairManager.getInstance(server).setPairMaxHealth(server, targetPair, health);
+                    // context.getSource().sendFeedback(() -> Text.literal("Player unlinked"), false);
+                    context.getSource().sendMessage(Text.literal("Pairs max health updated"));
+                    return 1;
+                })))));
+
         // on join event
         ServerPlayConnectionEvents.INIT.register((handler, server) -> {
             ServerPlayerEntity playerThatJustJoined = handler.getPlayer();
             if (PlayerPairManager.getInstance(server).isInAPair(playerThatJustJoined)) {
                 PlayerPair joinedPair = PlayerPairManager.getInstance(server).getPair(playerThatJustJoined.getUuid());
                 ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(joinedPair.getOtherPairUUID(playerThatJustJoined.getUuid()));
-                if (player2 != null) {
-                    playerThatJustJoined.setHealth(player2.getHealth()); // sync healths on join
+
+                // sync max health on join
+                if (playerThatJustJoined.getHealth() != joinedPair.getMaxHealth()) {
+                    PlayerPairManager.getInstance(server).updateMaxHealthAttribute(playerThatJustJoined, joinedPair.getMaxHealth());
+                    playerThatJustJoined.heal(playerThatJustJoined.getMaxHealth());
+                }
+
+                if (player2 != null) { // sync healths on join
+                    playerThatJustJoined.setHealth(player2.getHealth());
                 }
             }
         });
@@ -118,12 +160,19 @@ public class ServerPatcher implements ModInitializer {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
         });
 
+        // respawn event
         ServerPlayerEvents.AFTER_RESPAWN.register(((oldPlayer, playerThatJustRespawned, alive) -> {
             MinecraftServer server = playerThatJustRespawned.getServer();
             if (server != null) {
                 if (PlayerPairManager.getInstance(server).isInAPair(playerThatJustRespawned)) {
                     PlayerPair joinedPair = PlayerPairManager.getInstance(server).getPair(playerThatJustRespawned.getUuid());
                     ServerPlayerEntity player2 = server.getPlayerManager().getPlayer(joinedPair.getOtherPairUUID(playerThatJustRespawned.getUuid()));
+                    // sync max health on respawn
+                    if (playerThatJustRespawned.getMaxHealth() != joinedPair.getMaxHealth()) {
+                        PlayerPairManager.getInstance(server).updateMaxHealthAttribute(playerThatJustRespawned, joinedPair.getMaxHealth());
+                        playerThatJustRespawned.heal(playerThatJustRespawned.getMaxHealth());
+                    }
+
                     if (player2 != null && player2.isAlive()) {
                         playerThatJustRespawned.setHealth(player2.getHealth()); // sync healths on respawn
                     }
@@ -132,11 +181,11 @@ public class ServerPatcher implements ModInitializer {
         }));
 
         // randomize command (pick random players, excludes online players from given list, and excludes user if remaining players after exclusion are uneven)
-        // needs the names to be connected by a hypen i.e. "NotCarrotC-CarrotC"
+        // needs the names to be connected by a hyphen i.e. "NotCarrotC-CarrotC"
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("randomize")
                 .executes(context -> randomizePairs(context, ""))
                 .then(argument("excludeList", StringArgumentType.string())
-                .executes(context -> randomizePairs(context, StringArgumentType.getString(context, "excludeList"))))));
+                        .executes(context -> randomizePairs(context, StringArgumentType.getString(context, "excludeList"))))));
     }
 
     private int randomizePairs(CommandContext<ServerCommandSource> context, String excludeInput) {
