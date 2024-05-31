@@ -122,18 +122,11 @@ public class PlayerPairManager extends PersistentState {
 
     public void updateMaxHealthAttribute(ServerPlayerEntity p, float amount) {
         if (p != null) {
-            // clear the health to set the player back to 20.0 health
-            // TODO: you can probably clear the modifiers based on a key to avoid collisions in case there is other sources that change max health...
-            p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).clearModifiers();
+            // just update the max health base value to amount
+            p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(amount);
 
-            float healthOperation = amount - p.getMaxHealth();
-
-            // then update the health to the new max
-            p.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH)
-                    .addPersistentModifier(
-                            new EntityAttributeModifier("ServerPatcher", healthOperation, EntityAttributeModifier.Operation.ADDITION
-                            )
-                    );
+            // poke to player to update the client
+            p.damage(p.getDamageSources().generic(), 0.0001f);
         }
     }
 
