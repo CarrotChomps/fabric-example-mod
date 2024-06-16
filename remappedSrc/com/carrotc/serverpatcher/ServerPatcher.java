@@ -86,7 +86,7 @@ public class ServerPatcher implements ModInitializer {
                         }))));
 
         // list command (displays offline players as well)
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("listp").executes(context -> {
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(literal("list").executes(context -> {
             MinecraftServer server = context.getSource().getServer();
             List<PlayerPair> pairList = PlayerPairManager.getInstance(server).getPairs();
 

@@ -1,7 +1,6 @@
 package com.carrotc.serverpatcher;
 
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.world.PersistentState;
@@ -23,20 +22,14 @@ public class PlayerPairManager extends PersistentState {
     private PlayerPairManager() {
     }
 
-    private static Type<PlayerPairManager> type = new Type<>(
-            PlayerPairManager::new,
-            PlayerPairManager::createFromNbt,
-            null
-    );
 
     public static PlayerPairManager getInstance(MinecraftServer server) {
         PersistentStateManager persistentStateManager = server.getWorld(World.OVERWORLD).getPersistentStateManager();
 
-        PlayerPairManager instance = persistentStateManager.getOrCreate(type, ServerPatcher.MOD_ID);
-//        PlayerPairManager instance = persistentStateManager.getOrCreate(
-//                PlayerPairManager::createFromNbt,
-//                PlayerPairManager::new,
-//                ServerPatcher.MOD_ID);
+        PlayerPairManager instance = persistentStateManager.getOrCreate(
+                PlayerPairManager::deserialize,
+                PlayerPairManager::new,
+                ServerPatcher.MOD_ID);
 
         instance.markDirty();
 
@@ -104,7 +97,7 @@ public class PlayerPairManager extends PersistentState {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registryLookup) {
+    public NbtCompound writeNbt(NbtCompound nbt) {
         NbtCompound pairsNbt = new NbtCompound();
         for (int i = 0; i < pairs.size(); i++) {
             pairsNbt.putString(String.valueOf(i), pairs.get(i).serialize());
@@ -113,7 +106,7 @@ public class PlayerPairManager extends PersistentState {
         return nbt;
     }
 
-    private static PlayerPairManager createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
+    private static PlayerPairManager deserialize(NbtCompound tag) {
         PlayerPairManager playerPairManager = new PlayerPairManager();
 
         NbtCompound pairsTag = tag.getCompound(PAIRS_KEY);
